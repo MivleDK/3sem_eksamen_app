@@ -10,8 +10,13 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.RocketLaunch">
-        <activity android:name=".DetailsActivity"></activity>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD2vRZsQi5wQOVTfbBAEkQ3GWLuWjFJkiQ" />
+
+        <activity android:name=".DetailsActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -17,4 +17,12 @@
     <string name="wikipedia_link">Wikipedia Link</string>
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
+    <string name="day_weather_forecast">%d day weather forecast</string>
+    <string name="temp_c">%d° c</string>
+    <string name="feels_like_c">Feels Like %d° c</string>
+    <string name="wind_speed_m_s">%.2f m/s %s</string>
+    <string name="humidity_">Humidity %d%%</string>
+    <string name="pressure_pa">%dhPa</string>
+    <string name="sunrise_">Sunrise %s</string>
+    <string name="sunset_">Sunset %s</string>
 </resources>

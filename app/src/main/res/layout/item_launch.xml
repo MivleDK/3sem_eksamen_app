@@ -70,7 +70,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="30dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -79,8 +79,9 @@
             android:textColor="@color/orange"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:gravity="center"
             android:layout_centerInParent="true"
-            android:layout_marginHorizontal="10dp"
+            android:paddingHorizontal="10dp"
             android:id="@+id/tvLocation" />
 
         <TextView
@@ -90,8 +91,9 @@
             android:textColor="@color/orange"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:gravity="center"
             android:layout_toStartOf="@id/tvLocation"
-            android:layout_marginHorizontal="10dp"
+            android:paddingHorizontal="10dp"
             android:id="@+id/tvInformation" />
 
 
@@ -102,7 +104,8 @@
             android:textColor="@color/orange"
             android:textSize="14sp"
             android:textStyle="bold"
-            android:layout_marginHorizontal="10dp"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
             android:layout_toEndOf="@id/tvLocation"
             android:id="@+id/tvWeather" />
 
