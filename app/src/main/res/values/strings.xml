@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Rocket Launch</string>
+    <string name="launch_in">Launch in</string>
+    <string name="information">Information</string>
+    <string name="location">Location</string>
+    <string name="weather">Weather</string>
+    <string name="next_launches">Next %d Launches</string>
+    <string name="date">Date</string>
+    <string name="estimated_launch">Estimated launch</string>
+    <string name="launch_provider">Launch Provider</string>
+    <string name="type">Type</string>
+    <string name="mission_name">Mission Name</string>
+    <string name="mission_details">Mission Details</string>
+    <string name="rocket">Rocket</string>
+    <string name="unknown">Unknown</string>
+    <string name="country">Country</string>
+    <string name="wikipedia_link">Wikipedia Link</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+</resources>
