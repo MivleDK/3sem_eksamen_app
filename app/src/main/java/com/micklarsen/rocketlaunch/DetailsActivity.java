@@ -42,16 +42,22 @@ import java.util.Locale;
 
 public class DetailsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    //pad values
     public static final int SHOW_INFO = 1;
     public static final int SHOW_LOCATION = 2;
     public static final int SHOW_WEATHER = 3;
+
+    //keywords to pass between activities
     public static final String LAUNCH_ID = "launch_id";
     public static final String PAGE_TYPE = "page_type";
 
+    //rocket launch for which the details are shown
     private RocketLaunch mLaunch;
+    //volley object to handle network calls
     private RequestQueue mRequestQueue;
+    //handler to make timer updates
     private Handler mHandler = new Handler();
-    private GoogleMap mMap;
+    //runnable that updates the timer every second
     private Runnable mUpdateTimer = new Runnable() {
         @Override
         public void run() {
@@ -59,20 +65,24 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
             mHandler.postDelayed(mUpdateTimer, 1000);
         }
     };
+    //google map object
+    private GoogleMap mMap;
 
+    //tab layouts. only one of three can be visible at a time
     private View mLayoutInformation, mLayoutLocation, mLayoutWeather;
+    //views that are being shown all the time when the screen is visible
     private TextView mTextViewTimer, mTextViewLocationName, mTextViewProviderName, mTextViewCountryCode,
             mTextViewInformation, mTextViewLocation, mTextViewWeather;
 
-    //information
+    //views inside information tab
     private TextView mTextViewDate, mTextViewEstimatedLaunch, mTextViewLocationInfo, mTextViewProvider, mTextViewType,
             mTextViewMission, mTextViewDescription, mTextViewRocket;
     private ImageView mImageViewProvider, mImageViewRocket;
 
-    //location
+    //views inside location tab
     private TextView mTextViewLocationLoc, mTextViewCountry, mTextViewWikiLink, mTextViewLatitude, mTextViewLongitude;
 
-    //weather
+    //views inside weather tab
     private TextView mTextViewLocationWeather, mTextViewDateWeather, mTextViewTemperature, mTextViewWeatherDescription, mTextViewWeatherDetails,
             mTextViewFeelsLike, mTextViewWind, mTextViewPressure, mTextViewHumidity, mTextViewSunrise, mTextViewSunset, mTextViewForecast;
     private ImageView mImageViewWeather, mImageViewCompass;
@@ -83,9 +93,12 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
+        // retrieving the launch object by an id that was passed from Mainactivity
         mLaunch = Data.getLaunchById(getIntent().getStringExtra(LAUNCH_ID));
+        //initializing the request queue
         mRequestQueue = Volley.newRequestQueue(this);
 
+//        initializing top views and pads
         mLayoutInformation = findViewById(R.id.llInformation);
         mLayoutLocation = findViewById(R.id.llLocation);
         mLayoutWeather = findViewById(R.id.llWeather);
@@ -97,15 +110,18 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mTextViewLocation = findViewById(R.id.tvLocation);
         mTextViewWeather = findViewById(R.id.tvWeather);
 
+        //assigning values to top views
         mTextViewLocationName.setText(mLaunch.getLocation());
         mTextViewProviderName.setText(mLaunch.getProviderName());
         mTextViewCountryCode.setText(mLaunch.getCountryCode());
         mUpdateTimer.run();
 
+        //setting click listeners for pad buttons
         mTextViewInformation.setOnClickListener(v -> setInformation());
         mTextViewLocation.setOnClickListener(v -> setLocation());
         mTextViewWeather.setOnClickListener(v -> setWeather());
 
+        //setting the starting pad depending of what was set from MainActivity intent
         switch (getIntent().getIntExtra(PAGE_TYPE, SHOW_INFO)) {
             case SHOW_INFO:
                 setInformation();
@@ -118,6 +134,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
                 break;
         }
 
+        // click listener for top logo to go back to main screen
         findViewById(R.id.logo_top).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -125,7 +142,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
-        //information
+        //initializing views for information tab
         mTextViewDate = findViewById(R.id.tvDate);
         mTextViewEstimatedLaunch = findViewById(R.id.tvEstimatedLaunch);
         mTextViewLocationInfo = findViewById(R.id.tvLocationInfo);
@@ -136,6 +153,8 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mTextViewRocket = findViewById(R.id.tvRocket);
         mImageViewProvider = findViewById(R.id.ivProviderLogo);
         mImageViewRocket = findViewById(R.id.ivRocket);
+
+        //setting the values to information tab fields
         mTextViewDate.setText(new SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()).format(mLaunch.getLaunchDate()));
         mTextViewEstimatedLaunch.setText(new SimpleDateFormat("HH:mm", Locale.getDefault()).format(mLaunch.getLaunchDate()) + " EST");
         mTextViewLocationInfo.setText(mLaunch.getLocation() + "\n" + mLaunch.getCountryCode());
@@ -145,31 +164,36 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mTextViewDescription.setText(mLaunch.getMissionDetails());
         mTextViewRocket.setText(mLaunch.getRocketName());
         Glide.with(this).load(mLaunch.getRocketImage()).into(mImageViewRocket);
+        //calling the api to get launch provider logo image
         getProvider();
 
-        //location
+        //initializing views in the location tab
         mTextViewLocationLoc = findViewById(R.id.tvLocationLoc);
         mTextViewCountry = findViewById(R.id.tvCountryLoc);
         mTextViewWikiLink = findViewById(R.id.tvWikiLink);
         mTextViewLatitude = findViewById(R.id.tvLat);
         mTextViewLongitude = findViewById(R.id.tvLong);
+
+//        setting the values to location tab fields
         mTextViewLocationLoc.setText(mLaunch.getLocation());
         mTextViewCountry.setText(mLaunch.getCountryCode());
         mTextViewLatitude.setText(String.valueOf(mLaunch.getLatitude()));
         mTextViewLongitude.setText(String.valueOf(mLaunch.getLongitude()));
+        //setting the hyperlink only if it is available
         if (mLaunch.getWikiLink().equals(getString(R.string.unknown)))
             mTextViewWikiLink.setText(mLaunch.getWikiLink());
         else {
             mTextViewWikiLink.setMovementMethod(LinkMovementMethod.getInstance());
             mTextViewWikiLink.setText(Html.fromHtml("<a href=" + mLaunch.getWikiLink() + ">" + mLaunch.getPadName() + "</a>"));
         }
+        //initializing the map
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
 
-        //weather
+        //initializing views in weather tab
         mTextViewLocationWeather = findViewById(R.id.tvLocationWeather);
         mTextViewDateWeather = findViewById(R.id.tvDateWeather);
         mTextViewTemperature = findViewById(R.id.tvTemperature);
@@ -186,18 +210,23 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mImageViewCompass = findViewById(R.id.ivCompass);
         mRecyclerViewWeatherForecast = findViewById(R.id.rvWeatherForecast);
         mRecyclerViewWeatherForecast.setLayoutManager(new GridLayoutManager(DetailsActivity.this, 2));
+
+        //setting values to first two fields in weather tab
         mTextViewLocationWeather.setText(mLaunch.getLocation());
         Calendar c = Calendar.getInstance();
         c.setTime(mLaunch.getLaunchDate());
         int dayInMonth = c.get(Calendar.DAY_OF_MONTH);
         mTextViewDateWeather.setText(new SimpleDateFormat("EEEE, dd'" + Util.getDayOfMonthSuffix(dayInMonth) + "' MMMM yyyy", Locale.getDefault()).format(mLaunch.getLaunchDate()));
+        //api call to get weather data
         getWeather();
     }
 
+    //updates the timer
     private void updateTimer() {
         mTextViewTimer.setText(mLaunch.getTimerString());
     }
 
+    //sets the information tab
     private void setInformation() {
         mTextViewInformation.setTextColor(getResources().getColor(R.color.green_light));
         mTextViewLocation.setTextColor(getResources().getColor(R.color.orange));
@@ -207,6 +236,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mLayoutWeather.setVisibility(View.GONE);
     }
 
+    //sets the location tab
     private void setLocation() {
         mTextViewInformation.setTextColor(getResources().getColor(R.color.orange));
         mTextViewLocation.setTextColor(getResources().getColor(R.color.green_light));
@@ -216,6 +246,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mLayoutWeather.setVisibility(View.GONE);
     }
 
+    //sets the weather tab
     private void setWeather() {
         mTextViewInformation.setTextColor(getResources().getColor(R.color.orange));
         mTextViewLocation.setTextColor(getResources().getColor(R.color.orange));
@@ -225,11 +256,13 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mLayoutWeather.setVisibility(View.VISIBLE);
     }
 
+    //holder for individual daily weather objects
     public class DayWeatherHolder extends RecyclerView.ViewHolder {
 
         private TextView mTextViewWeekDay, mTextViewMaxTemp, mTextViewMinTemp, mTextViewDescription, mTextViewWind;
         private ImageView mImageViewIcon, mImageViewCompass;
 
+        //initializing views
         public DayWeatherHolder(@NonNull View itemView) {
             super(itemView);
             mTextViewWeekDay = itemView.findViewById(R.id.tvWeekDay);
@@ -241,6 +274,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
             mImageViewCompass = itemView.findViewById(R.id.ivCompass);
         }
 
+        //asigning values to views
         public void bindItem(DayWeather weather) {
             mTextViewWeekDay.setText(new SimpleDateFormat("EEEE", Locale.getDefault()).format(weather.getDate()));
             mTextViewMaxTemp.setText(String.format(Locale.getDefault(), "%d°", weather.getTempMax()));
@@ -253,6 +287,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    //adapter to transform DayWeather objects into DayWeatherHolders
     public class DayWeatherAdapter extends RecyclerView.Adapter<DayWeatherHolder> {
 
         public ArrayList<DayWeather> mDays;
@@ -261,6 +296,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
             mDays = days;
         }
 
+        //connecting adapter to a layout file
         @NonNull
         @Override
         public DayWeatherHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -268,6 +304,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
             return new DayWeatherHolder(view);
         }
 
+        //binding to view on a given position
         @Override
         public void onBindViewHolder(@NonNull DayWeatherHolder holder, int position) {
             holder.bindItem(mDays.get(position));
@@ -281,10 +318,12 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     protected void onDestroy() {
+        //removes timer callbacks
         mHandler.removeCallbacks(mUpdateTimer);
         super.onDestroy();
     }
 
+    //api call to load the provider logo
     private void getProvider() {
         com.android.volley.Response.Listener<String> responseListener = (Response.Listener<String>) response -> {
             Log.i("Response", response);
@@ -304,12 +343,14 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mRequestQueue.add(request);
     }
 
+    //api call to get weather
     private void getWeather() {
         com.android.volley.Response.Listener<String> responseListener = (Response.Listener<String>) response -> {
             Log.i("Response", response);
             try {
                 JSONObject responseJSON = new JSONObject(response);
 
+                //parsing current weather object and setting the views to weather data
                 JSONObject objectCurrent = responseJSON.getJSONObject("current");
                 mTextViewTemperature.setText(String.format(Locale.getDefault(), getString(R.string.temp_c), objectCurrent.getInt("temp")));
                 mTextViewFeelsLike.setText(String.format(Locale.getDefault(), getString(R.string.feels_like_c), objectCurrent.getInt("feels_like")));
@@ -329,6 +370,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
                 mTextViewWeatherDetails.setText(objectWeather.getString("description"));
                 Glide.with(DetailsActivity.this).load(Util.getWeatherIcon(objectWeather.getString("icon"))).into(mImageViewWeather);
 
+                // creating dayweather objects from weather json
                 JSONArray dailyWeather = responseJSON.getJSONArray("daily");
                 mTextViewForecast.setText(String.format(Locale.getDefault(), getString(R.string.day_weather_forecast), dailyWeather.length()));
                 ArrayList<DayWeather> list = new ArrayList<>();
@@ -348,6 +390,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
                     weather.setTempMin(objectTemp.getInt("min"));
                     list.add(weather);
                 }
+                //creating new adapter
                 mRecyclerViewWeatherForecast.setAdapter(new DayWeatherAdapter(list));
 
             } catch (Exception e) {
@@ -363,17 +406,22 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
         mRequestQueue.add(request);
     }
 
+    //this is getting called when google map is ready
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        //enables zoom controls
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
+        //adds marker on given lat/lng
         LatLng position = new LatLng(mLaunch.getLatitude(), mLaunch.getLongitude());
         mMap.addMarker(new MarkerOptions()
                 .position(position)
                 .title(mLaunch.getPadName()));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
-        NestedScrollView scrollView = findViewById(R.id.scrollView); //parent scrollview in xml, give your scrollview id value
+
+        //using a workaround to be able to use pinch to zoom in a scrollview
+        NestedScrollView scrollView = findViewById(R.id.scrollView);
         ((WorkaroundMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                 .setListener(new WorkaroundMapFragment.OnTouchListener() {
                     @Override
@@ -383,6 +431,7 @@ public class DetailsActivity extends AppCompatActivity implements OnMapReadyCall
                 });
     }
 
+    // class that contains weather parameters for a single day
     public static class DayWeather {
 
         private Date mDate;

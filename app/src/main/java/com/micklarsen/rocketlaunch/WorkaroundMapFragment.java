@@ -10,6 +10,7 @@ import android.widget.FrameLayout;
 
 import com.google.android.gms.maps.SupportMapFragment;
 
+//extension to a standard google maps fragment to allow intercepting touch events in a scrollview. If not using this pinch to zoom will not work in a map
 public class WorkaroundMapFragment extends SupportMapFragment {
     private OnTouchListener mListener;
 

@@ -27,13 +27,20 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+//main screen with a list of rocket launches
 public class MainActivity extends AppCompatActivity {
 
+    //progress bar that shows up while the network request is being made
     private ProgressBar mProgressBar;
+    // object from volley library that makes the network requests
     private RequestQueue mRequestQueue;
+    //main view that contains the list of rocket launches views
     private RecyclerView mRecyclerViewLaunches;
 
+    //handler for the runnable
     private Handler mHandler = new Handler();
+
+    //runnable that updates the timers every second
     private Runnable mTimerUpdate = new Runnable() {
         @Override
         public void run() {
@@ -47,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //initializing the fields
         mRequestQueue = Volley.newRequestQueue(this);
         mProgressBar = findViewById(R.id.progress_bar);
 
@@ -59,19 +67,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        //making api call to get a list o rocket launches. on resume method is called everytime the activity becomes visible, so when you comeback from details screen
+        //the list would be reloaded. If you want the list to be loaded only on app start move the below line to onCreate
         getLaunchList();
     }
 
+    //updates the adapter when the list is loaded or when the timer runnable ticks
     private void updateAdapter() {
         mRecyclerViewLaunches.getAdapter().notifyDataSetChanged();
     }
 
+    //holder view for individual rocket launch
     public class LaunchHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private TextView mTextViewTimer, mTextViewLocationName, mTextViewProviderName, mTextViewCountryCode,
                 mTextViewInformation, mTextViewLocation, mTextViewWeather, mTextViewNextLaunches;
         private RocketLaunch mLaunch;
 
+        //initializing the views
         public LaunchHolder(@NonNull View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
@@ -87,23 +100,28 @@ public class MainActivity extends AppCompatActivity {
 
         public void bindItem(RocketLaunch launch) {
             mLaunch = launch;
+            //setting values to text fields
             mTextViewTimer.setText(launch.getTimerString());
             mTextViewLocationName.setText(launch.getLocation());
             mTextViewProviderName.setText(launch.getProviderName());
             mTextViewCountryCode.setText(launch.getCountryCode());
+            //setting click listeners for option buttons
             mTextViewInformation.setOnClickListener(v -> {
+                //launches details activity with launch id and desired starting pad option
                 Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
                 intent.putExtra(DetailsActivity.PAGE_TYPE, DetailsActivity.SHOW_INFO);
                 intent.putExtra(DetailsActivity.LAUNCH_ID, launch.getId());
                 startActivity(intent);
             });
             mTextViewLocation.setOnClickListener(v -> {
+                //launches details activity with launch id and desired starting pad option
                 Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
                 intent.putExtra(DetailsActivity.PAGE_TYPE, DetailsActivity.SHOW_LOCATION);
                 intent.putExtra(DetailsActivity.LAUNCH_ID, launch.getId());
                 startActivity(intent);
             });
             mTextViewWeather.setOnClickListener(v -> {
+                //launches details activity with launch id and desired starting pad option
                 Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
                 intent.putExtra(DetailsActivity.PAGE_TYPE, DetailsActivity.SHOW_WEATHER);
                 intent.putExtra(DetailsActivity.LAUNCH_ID, launch.getId());
@@ -111,8 +129,10 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        //this will be called when an item is clicked
         @Override
         public void onClick(View v) {
+            //launches details activity with launch id and first pad option
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
             intent.putExtra(DetailsActivity.PAGE_TYPE, DetailsActivity.SHOW_INFO);
             intent.putExtra(DetailsActivity.LAUNCH_ID, mLaunch.getId());
@@ -120,8 +140,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //adapter class that transforms a list of RocketLaunch objects to LaunchHolder objects
     public class LaunchAdapter extends RecyclerView.Adapter<LaunchHolder> {
 
+        //connecting the adapter to a layout resource
         @NonNull
         @Override
         public LaunchHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -131,7 +153,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull LaunchHolder holder, int position) {
+            //binding the holder view to a launch on a given position
             holder.bindItem(Data.sRocketLaunches.get(position));
+
+            //showing the "Next launches" text above the second object
             if (Data.sRocketLaunches.size() > 2 && position == 1) {
                 holder.mTextViewNextLaunches.setText(String.format(getString(R.string.next_launches), Data.sRocketLaunches.size() - 1));
                 holder.mTextViewNextLaunches.setVisibility(View.VISIBLE);
@@ -146,13 +171,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //method that makes the network call and transforms json object to Data.sRocketLaunches object
     private void getLaunchList() {
         mProgressBar.setVisibility(View.VISIBLE);
         Data.sRocketLaunches.clear();
+        //this is getting called when the response was successfull
         com.android.volley.Response.Listener<String> responseListener = (Response.Listener<String>) response -> {
             Log.i("Response", response);
             mProgressBar.setVisibility(View.GONE);
             try {
+                //parsing the json data
                 JSONObject responseJSON = new JSONObject(response);
                 JSONArray array = responseJSON.getJSONArray("results");
                 for (int i = 0; i < array.length(); i++) {
@@ -206,12 +234,14 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         };
+        //this is getting called when the network call returned an error
         com.android.volley.Response.ErrorListener errorListener = error -> {
             error.printStackTrace();
             mProgressBar.setVisibility(View.GONE);
             updateAdapter();
         };
 
+        //making the request
         Uri uri = Uri.parse(Data.sUrl + "nextlaunch/upcoming")
                 .buildUpon()
                 .build();
@@ -222,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // removing handler callbacks when activity shuts down
         mHandler.removeCallbacks(mTimerUpdate);
     }
 }

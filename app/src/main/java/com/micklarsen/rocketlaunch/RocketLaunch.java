@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+// single rocket laucnh object and its parameters
 public class RocketLaunch {
 
     private String mId;
@@ -157,6 +158,7 @@ public class RocketLaunch {
         mPadName = padName;
     }
 
+    //transforms the date into a colored string to be shown as a timer
     public Spanned getTimerString() {
         long remaining = mLaunchDate.getTime() - Util.getUTCDate().getTime();
         long days = Math.max(TimeUnit.MILLISECONDS.toDays(remaining), 0);
